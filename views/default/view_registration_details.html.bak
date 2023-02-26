@@ -1,0 +1,93 @@
+{{extend 'layout.html'}}
+
+<!--
+<p>{{=registos}}</p>
+-->
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+
+   
+    
+<h2>Detalhes do dia [[registration_post.date]] no Posto [[registration_post.post]]</h2>
+
+  <a class="btn" href="{{=URL('default','view_registration')}}">Voltar</a>  
+   
+
+
+<table class="table table-hover table-bordered table-striped table-vcenter">
+ <tr>
+   <td style="text-align:right"> Box </td>
+  <td style="text-align:right">  Contador </td>
+  <td style="text-align:right">  Valor € </td>
+ 
+</tr>
+<tr   ng-repeat="r in registos  | filter  : search ">
+  <td style="text-align:right"  >[[ r.t_box ]] </td>
+  <td style="text-align:right" >[[ r.counter_value ]] </td>
+  <td style="text-align:right"  >[[ r.amount.toFixed(2) ]] € </td>
+ 
+   
+  </tr>
+
+ 
+</table>
+
+
+
+<h5>Diferenças</h5>
+<table>
+<td></td><td>Valor</td><td>Descrição</td>
+<tr>
+  <td></td><td style="text-align:right" > [[registration_post.amount_subtract]]  </td><td> [[registration_post.amount_subtract_description]] </td>
+
+</tr>
+<tr>
+  <td></td><td></td><td></td>
+</tr>
+<tr>
+ <td>Total:</td> <td  style="text-align:right" > [[ registration_post.total ]]  </td><td></td>
+</tr>
+
+</table>
+
+<h4>Detalhes Movimento </h4> 
+
+
+    {{=form_movement}}
+ 
+
+</div>
+
+
+<script>
+
+
+ var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+ 
+ app.controller('MainCtrl', function($scope,$http) {
+ 
+
+ /*
+*/
+$scope.registration_post =  {{=XML(response.json(registration_by_post))}};
+
+
+
+
+ $scope.search = [];
+//$scope.search.t_post = null;
+
+$scope.registos =  {{=XML(response.json(registos))}};
+
+
+ 
+ 
+
+
+});
+
+
+</script>

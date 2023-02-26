@@ -1,0 +1,260 @@
+﻿@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def manage():
+    isComputerAuth()
+    edit_link = [lambda row: A('Editar',_href=URL("movement","edit",args=[row.id]))]
+
+    accounts = db(db.account).select()
+
+
+    return locals()
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def edit() :
+    isComputerAuth()
+    
+    movement_id = request.args(0) 
+
+    movement = db.movement(movement_id)
+    
+   
+    
+
+    form = SQLFORM(db.movement, movement,
+		   deletable=True,
+		   delete_label='Selecione para apagar',
+		   submit_button='Gravar')
+    
+    form_view = SQLFORM(db.movement, movement,
+		   deletable=False,
+           readonly=True, )
+
+
+    if form.process().accepted:
+       if movement.related_movement != None:
+            
+            movement_related =  db.movement(movement.related_movement.id)
+            
+            if movement_related != None :
+                movement_related.update_record(credit=form.vars.debit)
+                movement_related.update_record(debit=form.vars.credit)           
+        
+       response.flash = 'Gravado com sucesso'
+       redirect(URL('manage'))
+    
+    elif form.errors:
+       response.flash = 'Ocoreu um erro'
+   
+    #return dict(form=form)
+    return locals() 
+
+
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def add():
+    isComputerAuth()
+    accounts = db(db.account).select( orderby =db.account.name)
+    
+    documents = db(db.document_type.manual_available == True ).select( orderby =db.document_type.name)    
+    
+    return locals()
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def delete():
+    isComputerAuth()
+    movement_id =  request.vars.id
+    
+    movement = db.movement(movement_id)
+    
+    if movement.related_movement != None :
+        delete_movementdb(movement.related_movement)
+        
+
+    delete_movementdb(movement_id)
+
+       
+    return "OK"
+
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def saveMovement():
+
+ 
+    date = request.vars.date
+    document = request.vars.document
+    post1 = request.vars.post1
+    post2 = request.vars.post2
+    amount =  float(request.vars.amount)
+    mtype = request.vars.type
+    description = request.vars.description
+
+
+
+    if post1 == post2 :
+        return "O posto de origem e destino não pode ser o mesmo"
+
+    if mtype == "DBT" :
+        create_movement(post1,document,0,amount,date,description,None,None)
+        return "OK"
+
+    if mtype == "CRD" :
+		create_movement(post1,document,amount,0,date,description,None,None)
+		return "OK"
+
+    if mtype == "TRF" :
+    	move1 = create_movement(post1,document,0,amount,date,description,post2,None)
+        move2 = create_movement(post2,document,amount,0,date,description,post1,move1)
+        movement = db.movement(move1)
+        
+        movement.update_record(related_movement = move2)
+        
+        return "OK"
+	
+    return "OK"
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def filterMovement() :
+
+    from dateutil import parser
+    from datetime import timedelta
+    import datetime 
+
+    startdate =  None
+    enddate = None
+    
+    if request.vars.account != None :
+        accountid = int(request.vars.account)
+    else :
+        accountid = 0
+    
+    
+    if request.vars.startdate != None and request.vars.enddate != None :
+        startdate =  parser.parse(request.vars.startdate)
+        enddate =  parser.parse(request.vars.enddate)
+    else :
+        startdate =  datetime.date.today()-timedelta(days=60)
+        enddate = datetime.date.today()
+
+    movements = []
+
+    inicial_balance = get_balance_by_date(startdate,accountid)
+
+
+
+    if accountid == 0 :
+        movements = db( (db.movement.m_date  >=  startdate)  &  (db.movement.m_date <=  enddate ) ).select(orderby =db.movement.m_date | db.movement.id   )
+
+    else :
+        movements = db( (db.movement.m_date  >=  startdate)  &  (db.movement.m_date <=  enddate ) & (db.movement.account1 == accountid) ).select(orderby =db.movement.m_date | db.movement.id   )
+
+
+    
+
+    
+
+    tmp = inicial_balance;
+
+    mlist = []
+
+    for m in movements :
+        tmp = tmp + (m.credit - m.debit)
+        m.total_balance = tmp
+	
+        m.value = (m.credit - m.debit)
+	
+        m.amount_name = db.account(m.account1).code
+        
+        m.acount_dest_name = ''
+        
+        if (m.account2 != None) and (m.account2 != 0) :
+            m.acount_dest_name =  db.account(m.account2).code
+        
+        
+        m.document_type_name = db.document_type(m.document_type).name
+        
+
+        mlist.append(m )
+
+
+
+    return response.json(mlist)
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def delete_movementdb(movement_id) :
+
+    isComputerAuth()
+
+    movement = db.movement(movement_id)
+
+    db(db.movement.id == movement.id).delete()
+
+    return "OK"
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def create_movement( account_id, document_type, credit , debit ,date,description,account_id2,related_movement ):
+
+    isComputerAuth()
+
+    total = credit-debit
+
+
+    movimentoId = db.movement.insert(
+        account1 = account_id,
+        account2 = account_id2,
+        document_type =  document_type,
+        debit =  debit,
+        credit = credit,
+        m_date = date,
+	description = description,
+    related_movement = related_movement
+     );
+
+    return movimentoId
+
+
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def get_balance_by_date(date,accountid):
+
+
+    movements = []
+
+    if accountid == 0 :
+        movements = db(db.movement.m_date < date).select(orderby =db.movement.m_date)
+    else :
+        movements = db( (db.movement.m_date < date )  & (db.movement.account1 == accountid) ).select(orderby =db.movement.m_date)
+
+
+    inicial_balance = 0
+
+    tmp = 0;
+
+    for m in movements :
+        
+        inicial_balance = inicial_balance +( m.credit - m.debit )
+
+
+
+    return inicial_balance
+
+
+@auth.requires_login()
+@auth.requires(auth.has_membership('administrador') or auth.has_membership('escritorio') )
+def get_balance():
+
+
+
+	balance = db(db.movement).select( orderby =db.movement.id).last()
+
+	if balance == None or balance['balance'] == None :
+		return 0
+
+	return balance['balance']

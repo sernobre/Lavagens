@@ -1,0 +1,55 @@
+{{extend 'layout.html'}}
+
+
+<div ng-app="Lavagens" ng-controller="EditMovementCtrl">
+
+    <h2>Movimento</h2>
+
+
+    <a class="btn" href="{{=URL('movement','manage')}}">Voltar</a>
+    <div  ng-hide="editMode">
+        {{=form_view}}
+    </div>
+
+    <div ng-show="editMode">
+        {{=form}}
+    </div>
+
+    <button ng-hide="editMode" ng-click="ChangeEditMode()">Editar</button>
+   
+</div>
+
+<script>
+
+
+    var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+
+    app.controller('EditMovementCtrl', function ($scope, $http) {
+
+      
+   $scope.editMode = false;
+
+
+
+
+ $scope.ChangeEditMode = function () {
+
+     if ($scope.editMode)
+         $scope.editMode = false;
+     else
+         $scope.editMode = true;
+
+  }
+
+
+
+    });
+
+
+
+
+        </script>

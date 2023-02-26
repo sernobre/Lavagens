@@ -1,0 +1,576 @@
+timestamp: 2014-10-11T11:46:38.144145
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    username CHAR(128),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512),
+    registration_id CHAR(512)
+);
+success!
+timestamp: 2014-10-11T11:46:38.147442
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2014-10-11T11:46:38.150619
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.159222
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2014-10-11T11:46:38.162481
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2014-10-11T11:46:38.168498
+CREATE TABLE auth_cas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    service CHAR(512),
+    ticket CHAR(512),
+    renew CHAR(1)
+);
+success!
+timestamp: 2014-10-11T11:46:38.174424
+CREATE TABLE account_type(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    description CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.177921
+CREATE TABLE account(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    code CHAR(512),
+    account_type INTEGER REFERENCES account_type (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.181741
+CREATE TABLE post(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    code CHAR(512),
+    account INTEGER REFERENCES account (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.185879
+CREATE TABLE box(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    post INTEGER REFERENCES post (id) ON DELETE CASCADE,
+    counter_value CHAR(512),
+    coin_value DOUBLE,
+    code CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.191908
+CREATE TABLE category(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.195675
+CREATE TABLE document_type(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    description CHAR(512),
+    movement_type TEXT,
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.200224
+CREATE TABLE movement(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    m_date DATE,
+    account1 INTEGER REFERENCES account (id) ON DELETE CASCADE,
+    document_type INTEGER REFERENCES document_type (id) ON DELETE CASCADE,
+    credit DOUBLE,
+    debit DOUBLE,
+    description CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.203747
+CREATE TABLE registration_by_post(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    r_date DATE,
+    post INTEGER REFERENCES post (id) ON DELETE CASCADE,
+    movement INTEGER REFERENCES movement (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.212332
+CREATE TABLE registration_line(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    counter_value CHAR(512),
+    prev_counter_value CHAR(512),
+    t_box INTEGER REFERENCES box (id) ON DELETE CASCADE,
+    registration_by_post INTEGER REFERENCES registration_by_post (id) ON DELETE CASCADE,
+    amount DOUBLE,
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.218417
+CREATE TABLE user_post(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post INTEGER REFERENCES post (id) ON DELETE CASCADE,
+    f_user INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2014-10-11T11:46:38.222863
+CREATE TABLE computer(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    cookie_key CHAR(512),
+    user_agent CHAR(512),
+    is_active CHAR(1),
+    created_on TIMESTAMP,
+    created_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on TIMESTAMP,
+    modified_by INTEGER REFERENCES auth_user (id) ON DELETE CASCADE
+);
+success!
+success!
+success!
+timestamp: 2014-10-12T16:17:21.933187
+ALTER TABLE movement ADD description__tmp LONGTEXT;
+success!
+UPDATE movement SET description__tmp=description;
+success!
+ALTER TABLE movement DROP COLUMN description;
+success!
+ALTER TABLE movement ADD description LONGTEXT;
+success!
+UPDATE movement SET description=description__tmp;
+success!
+ALTER TABLE movement DROP COLUMN description__tmp;
+success!
+timestamp: 2014-10-12T16:17:22.357642
+ALTER TABLE movement ADD credit__tmp NUMERIC(10,3);
+success!
+UPDATE movement SET credit__tmp=credit;
+success!
+ALTER TABLE movement DROP COLUMN credit;
+success!
+ALTER TABLE movement ADD credit NUMERIC(10,3);
+success!
+UPDATE movement SET credit=credit__tmp;
+success!
+ALTER TABLE movement DROP COLUMN credit__tmp;
+success!
+timestamp: 2014-10-12T16:17:22.630516
+ALTER TABLE movement ADD debit__tmp NUMERIC(10,3);
+success!
+UPDATE movement SET debit__tmp=debit;
+success!
+ALTER TABLE movement DROP COLUMN debit;
+success!
+ALTER TABLE movement ADD debit NUMERIC(10,3);
+success!
+UPDATE movement SET debit=debit__tmp;
+success!
+ALTER TABLE movement DROP COLUMN debit__tmp;
+success!
+success!
+timestamp: 2014-10-13T18:07:06.953411
+ALTER TABLE document_type ADD manual_available CHAR(1);
+success!
+success!
+timestamp: 2014-10-13T18:12:02.220964
+ALTER TABLE document_type_archive ADD manual_available CHAR(1);
+success!
+success!
+timestamp: 2015-07-19T13:30:44.923493
+ALTER TABLE movement ADD related_movement INT, ADD INDEX related_movement__idx (related_movement), ADD FOREIGN KEY (related_movement) REFERENCES movement (id) ON DELETE CASCADE;
+success!
+timestamp: 2015-07-19T13:30:44.988182
+ALTER TABLE movement ADD account2 INT, ADD INDEX account2__idx (account2), ADD FOREIGN KEY (account2) REFERENCES account (id) ON DELETE CASCADE;
+success!
+success!
+timestamp: 2015-10-25T17:05:34.918395
+ALTER TABLE movement ADD credit__tmp NUMERIC(10,2);
+success!
+UPDATE movement SET credit__tmp=credit;
+success!
+ALTER TABLE movement DROP COLUMN credit;
+success!
+ALTER TABLE movement ADD credit NUMERIC(10,2);
+success!
+UPDATE movement SET credit=credit__tmp;
+success!
+ALTER TABLE movement DROP COLUMN credit__tmp;
+success!
+timestamp: 2015-10-25T17:05:35.216240
+ALTER TABLE movement ADD debit__tmp NUMERIC(10,2);
+success!
+UPDATE movement SET debit__tmp=debit;
+success!
+ALTER TABLE movement DROP COLUMN debit;
+success!
+ALTER TABLE movement ADD debit NUMERIC(10,2);
+success!
+UPDATE movement SET debit=debit__tmp;
+success!
+ALTER TABLE movement DROP COLUMN debit__tmp;
+success!
+success!
+timestamp: 2015-10-25T17:07:36.700206
+ALTER TABLE box ADD coin_value__tmp NUMERIC(10,2);
+success!
+UPDATE box SET coin_value__tmp=coin_value;
+success!
+ALTER TABLE box DROP COLUMN coin_value;
+success!
+ALTER TABLE box ADD coin_value NUMERIC(10,2);
+success!
+UPDATE box SET coin_value=coin_value__tmp;
+success!
+ALTER TABLE box DROP COLUMN coin_value__tmp;
+success!
+success!
+timestamp: 2015-10-25T17:07:37.028010
+ALTER TABLE registration_line ADD amount__tmp NUMERIC(10,2);
+success!
+UPDATE registration_line SET amount__tmp=amount;
+success!
+ALTER TABLE registration_line DROP COLUMN amount;
+success!
+ALTER TABLE registration_line ADD amount NUMERIC(10,2);
+success!
+UPDATE registration_line SET amount=amount__tmp;
+success!
+ALTER TABLE registration_line DROP COLUMN amount__tmp;
+success!
+success!
+timestamp: 2017-09-22T21:51:22.077774
+CREATE TABLE auth_user(
+    id INT AUTO_INCREMENT NOT NULL,
+    first_name VARCHAR(128),
+    last_name VARCHAR(128),
+    email VARCHAR(512),
+    username VARCHAR(128),
+    password VARCHAR(512),
+    registration_key VARCHAR(512),
+    reset_password_key VARCHAR(512),
+    registration_id VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+timestamp: 2017-09-22T21:52:23.532359
+CREATE TABLE auth_user(
+    id INT AUTO_INCREMENT NOT NULL,
+    first_name VARCHAR(128),
+    last_name VARCHAR(128),
+    email VARCHAR(512),
+    username VARCHAR(128),
+    password VARCHAR(512),
+    registration_key VARCHAR(512),
+    reset_password_key VARCHAR(512),
+    registration_id VARCHAR(512),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:23.561124
+CREATE TABLE document_type(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    description VARCHAR(512),
+    movement_type LONGTEXT,
+    manual_available CHAR(1),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:23.601631
+CREATE TABLE account_type(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    description VARCHAR(512),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:23.637393
+CREATE TABLE account(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    code VARCHAR(512),
+    account_type INT, INDEX account_type__idx (account_type), FOREIGN KEY (account_type) REFERENCES account_type (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:23.665304
+CREATE TABLE post(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    code VARCHAR(512),
+    account INT, INDEX account__idx (account), FOREIGN KEY (account) REFERENCES account (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:23.709094
+CREATE TABLE auth_group(
+    id INT AUTO_INCREMENT NOT NULL,
+    role VARCHAR(512),
+    description LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:23.743543
+CREATE TABLE auth_membership(
+    id INT AUTO_INCREMENT NOT NULL,
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:37.501046
+CREATE TABLE auth_event(
+    id INT AUTO_INCREMENT NOT NULL,
+    time_stamp DATETIME,
+    client_ip VARCHAR(512),
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    origin VARCHAR(512),
+    description LONGTEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:37.797781
+CREATE TABLE computer(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    cookie_key VARCHAR(512),
+    user_agent VARCHAR(512),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-09-22T21:52:37.835230
+CREATE TABLE user_post(
+    id INT AUTO_INCREMENT NOT NULL,
+    post INT, INDEX post__idx (post), FOREIGN KEY (post) REFERENCES post (id) ON DELETE CASCADE,
+    f_user INT, INDEX f_user__idx (f_user), FOREIGN KEY (f_user) REFERENCES auth_user (id) ON DELETE CASCADE,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-04T09:44:17.593467
+CREATE TABLE movement(
+    id INT AUTO_INCREMENT NOT NULL,
+    m_date DATE,
+    account1 INT, INDEX account1__idx (account1), FOREIGN KEY (account1) REFERENCES account (id) ON DELETE CASCADE,
+    account2 INT, INDEX account2__idx (account2), FOREIGN KEY (account2) REFERENCES account (id) ON DELETE CASCADE,
+    related_movement INT, INDEX related_movement__idx (related_movement), FOREIGN KEY (related_movement) REFERENCES movement (id) ON DELETE CASCADE,
+    document_type INT, INDEX document_type__idx (document_type), FOREIGN KEY (document_type) REFERENCES document_type (id) ON DELETE CASCADE,
+    credit NUMERIC(10,2),
+    debit NUMERIC(10,2),
+    description LONGTEXT,
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-04T09:51:18.228742
+CREATE TABLE box(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    post INT, INDEX post__idx (post), FOREIGN KEY (post) REFERENCES post (id) ON DELETE CASCADE,
+    counter_value VARCHAR(512),
+    coin_value NUMERIC(10,2),
+    code VARCHAR(512),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-04T09:51:18.307781
+CREATE TABLE registration_by_post(
+    id INT AUTO_INCREMENT NOT NULL,
+    r_date DATE,
+    post INT, INDEX post__idx (post), FOREIGN KEY (post) REFERENCES post (id) ON DELETE CASCADE,
+    movement INT, INDEX movement__idx (movement), FOREIGN KEY (movement) REFERENCES movement (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-04T10:07:42.375587
+CREATE TABLE registration_line(
+    id INT AUTO_INCREMENT NOT NULL,
+    counter_value VARCHAR(512),
+    prev_counter_value VARCHAR(512),
+    t_box INT, INDEX t_box__idx (t_box), FOREIGN KEY (t_box) REFERENCES box (id) ON DELETE CASCADE,
+    registration_by_post INT, INDEX registration_by_post__idx (registration_by_post), FOREIGN KEY (registration_by_post) REFERENCES registration_by_post (id) ON DELETE CASCADE,
+    amount NUMERIC(10,2),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-05T21:47:09.596749
+CREATE TABLE auth_permission(
+    id INT AUTO_INCREMENT NOT NULL,
+    group_id INT, INDEX group_id__idx (group_id), FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    name VARCHAR(512),
+    table_name VARCHAR(512),
+    record_id INT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-05T21:47:09.626172
+CREATE TABLE auth_cas(
+    id INT AUTO_INCREMENT NOT NULL,
+    user_id INT, INDEX user_id__idx (user_id), FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    created_on DATETIME,
+    service VARCHAR(512),
+    ticket VARCHAR(512),
+    renew CHAR(1),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2017-10-05T21:47:09.650656
+CREATE TABLE category(
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+timestamp: 2018-07-11T14:18:38.066549
+CREATE TABLE document_type_archive(
+    current_record INT, INDEX current_record__idx (current_record), FOREIGN KEY (current_record) REFERENCES document_type (id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(512),
+    description VARCHAR(512),
+    movement_type LONGTEXT,
+    manual_available CHAR(1),
+    is_active CHAR(1),
+    created_on DATETIME,
+    created_by INT, INDEX created_by__idx (created_by), FOREIGN KEY (created_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    modified_on DATETIME,
+    modified_by INT, INDEX modified_by__idx (modified_by), FOREIGN KEY (modified_by) REFERENCES auth_user (id) ON DELETE CASCADE,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB CHARACTER SET utf8;
+faked!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+success!
+timestamp: 2023-02-06T21:39:47.840616
+ALTER TABLE "document_type" ADD "manual_available" CHAR(1);
+success!
+timestamp: 2023-02-06T21:39:47.950612
+ALTER TABLE "movement" ADD "account2" INTEGER REFERENCES "account" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ;
+timestamp: 2023-02-06T21:39:47.964775
+ALTER TABLE "movement" ADD "related_movement" INTEGER REFERENCES "movement" ("id") ON DELETE CASCADE ON UPDATE CASCADE  ;
+success!
+success!
+success!
+success!
+success!

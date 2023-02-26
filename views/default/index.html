@@ -1,0 +1,103 @@
+{{extend 'layout.html'}}
+
+
+
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+
+
+<h2>Escolha o posto</h2>
+<h5>Só aparecem os postos em que utilizador está inscrito</h5>
+<h5>Para adicionar outros funcionários ir a Utilizadores por posto no menu acima</h5>
+ 
+
+<table class="table table-hover">
+<tr><td>Posto</td><td></td> </tr>
+
+<tr ng-repeat="p in postos">
+  <td>[[p.name]]  </td><td>   <a href="{{=URL('box_register')}}/[[p.id]]" class="btn " > Registar Novo Dia </a>  
+ 
+ <a href="{{=URL('edit_last_register')}}/[[p.id]]" class="btn " > Editar ultimo registo </a>  
+   </td>
+   
+   <td>
+
+
+   </td>
+  
+
+  </tr>
+
+
+</table>
+
+<script>
+
+
+ var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+ 
+ app.controller('MainCtrl', function($scope,$http) {
+
+$scope.select_posto = null;
+ 
+$scope.postos =  {{=XML(response.json(postos))}};
+ 
+$scope.boxes = [];
+
+$scope.erros =  0;
+
+$scope.calculateValue = function(b) {
+
+
+var value = (b.counter_value_new  -  b.counter_value)  * b.coin_value ;
+
+
+if(value >= 0){
+	b.erro = false;
+	return value;
+}
+else {
+	b.erro = true;
+	return "Leitura diária Inválida";
+}
+
+
+};
+
+
+
+
+
+$scope.getBoxes = function(posto) {
+
+
+
+$http({method: 'GET', url: "{{=URL('default','getBoxes')}}/" + posto.id }).
+  success(function(data, status, headers, config) {
+    // this callback will be called asynchronously
+    // when the response is available
+
+$scope.boxes  = data ;
+
+  }).
+  error(function(data, status, headers, config) {
+    // called asynchronously if an error occurs
+    // or server returns response with an error status.
+  });
+
+};
+
+ 
+
+
+});
+
+
+</script>
+
+
+</div>
+

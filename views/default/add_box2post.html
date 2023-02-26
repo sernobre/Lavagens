@@ -1,0 +1,52 @@
+{{extend 'layout.html'}}
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+
+
+<h4>Adicionar Box ao posto [[post.name]]</h4>
+
+
+{{=form}}
+
+<h4>Boxs do posto [[post.name]]</h4>
+
+ 
+
+<table class="table table-striped table-bordered table-condensed">
+	<tr><td>Codigo</td><td> Nome </td><td> Moeda</td><td>Contador</td><td></td>  </tr>
+
+	<tr ng-repeat="b in boxes">
+	<td> [[b.code]] </td>	<td>[[b.name]] </td>   <td>[[b.coin_value]]</td><td>[[b.counter_value]]</td><td><a href="{{=URL('default','edit_box')}}/[[b.id]]" class="btn">Editar </a> </td>
+	</tr>
+
+
+ 
+
+</table>
+
+
+
+</div>
+
+<script>
+
+
+ var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+ 
+app.controller('MainCtrl', function($scope,$http) {
+
+$scope.post = {{=XML(response.json(post))}};
+
+$scope.boxes = {{=XML(response.json(boxes))}};
+
+
+
+
+});
+
+
+</script>
+

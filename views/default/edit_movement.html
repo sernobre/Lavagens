@@ -1,0 +1,94 @@
+﻿{{extend 'layout.html'}}
+
+<h2>Editar Movimento</h2>
+
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+
+{{=form}}
+
+<a class="btn" href="#" ng-click="delete()"  >Apagar movimento</a>
+
+
+
+</div>
+
+<script>
+
+
+    var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+        $interpolateProvider.startSymbol('[[');
+        $interpolateProvider.endSymbol(']]');
+    });
+
+ 
+    app.controller('MainCtrl', function($scope,$http) {
+
+        $scope.movementid = {{=movement_id}};
+
+
+        $scope.delete = function () {
+
+            var res =  confirm("Tem a certeza que quer apagar o movimento?");
+
+        
+            if (res) {
+
+
+
+                $http({
+                    method: 'POST', url: "{{=URL('default','delete_movement')}}",
+                    params: {
+                        id: $scope.movementid
+                      
+                    }
+
+                }).
+                  success(function (data, status, headers, config) {
+                      // this callback will be called asynchronously
+                      // when the response is available
+
+                      // window.location = "{{=URL('default','index')}}";
+
+                      if (data == "OK") {
+
+                          //  location.reload();
+
+                          jQuery('.flash').html('O registo foi apagado').slideDown();
+
+                          // $window.history.back();
+
+                          window.location = "{{=URL('default','movement_manage')}}";
+
+                         } else {
+
+                          jQuery('.flash').html('Ocoreu um erro.<br>' + data).slideDown();
+
+
+                      }
+
+
+                  }).
+                  error(function (data, status, headers, config) {
+                      // called asynchronously if an error occurs
+                      // or server returns response with an error status.
+                  });
+
+
+
+
+
+
+            }
+
+
+
+        };
+
+
+    });
+
+
+</script>
+ 
+
+

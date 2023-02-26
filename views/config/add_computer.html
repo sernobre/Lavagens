@@ -1,0 +1,88 @@
+{{extend 'layout.html'}}
+
+
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+
+
+<br>
+<label>Computer Name:</label> <input type="text" ng-model="computer_name">
+<br>
+<label>User Agent:</label> [[agent]]
+<br>
+<label>Key:</label>[[hash_key]]
+<br>
+
+ <a class="btn" ng-click="saveComputer()">Save </a>
+ </div>
+<script>
+
+
+ var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+
+app.controller('MainCtrl', function($scope,$http) {
+
+
+$scope.agent = {{=XML(response.json(agent))}};
+$scope.hash_key = {{=XML(response.json(hash_key))}};
+
+
+
+
+$scope.saveComputer = function() {
+
+
+
+
+
+
+$http({method: 'POST', url: "{{=URL('config','saveComputer')}}",
+ params: {
+  	name: $scope.computer_name ,
+  	agent : $scope.agent,
+  	key : $scope.hash_key,
+
+  }
+
+ }).
+  success(function(data, status, headers, config) {
+    // this callback will be called asynchronously
+    // when the response is available
+
+  //
+
+if(data == "OK"){
+
+location.reload();
+
+jQuery('.flash').html('Os dados foram gravados com sucesso').slideDown();
+
+ window.location = "{{=URL('config','auth_computer')}}";
+} else {
+
+jQuery('.flash').html('Ocoreu um erro.<br>' + data ).slideDown();
+
+
+}
+
+
+  }).
+  error(function(data, status, headers, config) {
+    // called asynchronously if an error occurs
+    // or server returns response with an error status.
+  });
+
+
+
+
+};
+
+
+
+
+});
+
+</script>

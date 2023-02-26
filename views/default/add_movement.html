@@ -1,0 +1,171 @@
+<p>{{=form}}</p>
+{{extend 'layout.html'}}
+
+<h2>Adicionar Movimento</h2>
+
+
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+<form name="form" class="css-form" novalidate>
+<label>  Posto 1 </label>
+ <select  ng-model="post1" ng-options="c.name for c in accounts"  >
+  <option  >-- Escolha a origem da transferencia --</option>
+</select>
+
+
+
+
+ <label>  Data </label>
+
+  <input type="date" ng-model="date"  />    
+
+
+
+
+
+ <label>  Documento </label>  
+   <select  ng-model="document" ng-options="d.name for d in documents"  >
+  <option  > -- Escolha o documento-- </option>
+</select>
+
+
+<label> Descrição </label>
+<textarea rows="4" cols="50" ng-model="description"> 
+</textarea>
+
+
+ <label>  Valor </label>  
+ <input  ng-model="amount" name="amount" type="text" smart-float />    
+  
+
+ <label> Tipo de Movimento </label>  
+
+ <label class="radio inline">  Debito   <input type="radio" name="group1"  name="type"   ng-model="type" value="DBT"></label>  
+
+  <label class="radio inline">  Credito <input type="radio" name="group1" name="type"  ng-model="type" value="CRD"> </label>  
+
+  <label class="radio inline">  Transferencia <input type="radio" name="group1" name="type" ng-model="type" value="TRF"> </label>  
+
+
+<div ng-show="type == 'TRF'" >
+<label> Posto 2 </label> 
+ <select  ng-model="post2" ng-options="c.name for c in accounts"   >
+  <option  > -- Escolha o Destino da transferencia -- </option>
+</select>
+</div>
+
+ <p>
+ <br>
+<a class="btn" href="#" ng-click="saveMovement()"> Adicionar </a>
+</p>
+</form>
+
+</div>
+<script>
+
+
+ var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+ 
+app.controller('MainCtrl', function($scope,$http) {
+
+
+$scope.accounts = {{=XML(response.json(accounts))}};
+
+$scope.documents = {{=XML(response.json(documents))}};
+
+
+
+$scope.saveMovement = function() {
+
+
+
+
+ if( $scope.date != null  &&   
+    $scope.document != null && 
+    $scope.post1 != null  &&
+    $scope.amount   != null &&
+    $scope.type  !== null ){
+
+
+$scope.post2id = null;
+
+
+if( $scope.post2  != null )
+$scope.post2id = $scope.post2.id ;
+
+
+$http({method: 'POST', url: "{{=URL('default','saveMovement')}}", 
+ params: { 
+  	date: $scope.date ,
+  	document : $scope.document.id,
+  	post1 : $scope.post1.id,
+  	amount : $scope.amount,
+	type : $scope.type,
+	description : $scope.description,
+	post2 : $scope.post2id 
+  }
+
+ }).
+  success(function(data, status, headers, config) {
+    // this callback will be called asynchronously
+    // when the response is available
+
+  // window.location = "{{=URL('default','index')}}";
+
+if(data == "OK"){
+
+location.reload();
+
+jQuery('.flash').html('Os dados foram gravados com sucesso').slideDown();
+
+
+$scope.reset();
+} else {
+ 
+jQuery('.flash').html('Ocoreu um erro.<br>' + data ).slideDown();
+
+
+}
+
+
+  }).
+  error(function(data, status, headers, config) {
+    // called asynchronously if an error occurs
+    // or server returns response with an error status.
+  });
+
+} else {
+
+
+if($scope.date == null)
+jQuery('.flash').html('A data é um campo obrigatório').slideDown();
+
+if($scope.document == null)
+jQuery('.flash').html('O tipo documento é obrigatório.<br>' ).slideDown();
+
+if($scope.post1  == null)
+jQuery('.flash').html('O Posto1 é obrigatório.<br>'  ).slideDown();
+
+if($scope.amount  == null)
+jQuery('.flash').html('O valor é obrigatório.<br>' ).slideDown();
+
+if($scope.type  == null)
+jQuery('.flash').html('O tipo de movimento é obrigatório<br>'  ).slideDown();
+
+
+
+}
+
+
+
+};
+
+
+
+});
+
+
+</script>

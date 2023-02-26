@@ -1,0 +1,327 @@
+{{extend 'layout.html'}}
+
+<div ng-app="Lavagens" ng-controller="MainCtrl">
+
+<h2>Registo de contadores do Posto: [[posto.name]]</h2>
+
+
+
+ 
+<h5>
+<input type="date" ng-model="record_date"  > Ultimo registo foi no dia [[last_registo.r_date]] </h5>
+
+
+<table class="table table-hover">
+	<tr>
+		<td>Nome da box</td>
+		<td>Moeda</td>
+		<td>Contador Inicial</td>  
+		<td>Contador final</td>
+		<td>Diferenças</td>
+		<td>Total em €</td>
+	</tr>
+<tr ng-repeat="b in boxes" ng-class="{error : b.erro ,success : !b.erro }">
+<td>[[b.name]]</td>
+<td>[[b.coin_value]] </td>
+<td> [[b.counter_value]] </td>
+
+<td><input type="text" ng-model="b.counter_value_new"  ng-change="updateFromNewCounter(b)" />  </td>
+<td>  <input type="text" ng-model="b.diferenca"  ng-change="updateFromDiferencas(b)" />     </td>
+<td>  [[   calculateValue(b)  ]]  </td>
+
+ 
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td>Total: [[getTotal()]]</td>
+
+</tr>
+</table>
+
+
+
+<h5>Diferenças</h5>
+<table>
+
+<tr>
+	<td> <input type="text" ng-model="diferencas" />  </td>
+	<td> <textarea ng-model="diferencas_desc"></textarea>   </td>
+
+</tr>
+<tr>
+	<td>Total: [[getTotal() - diferencas]]  </td>
+	<td></td>
+</tr>
+
+</table>
+<h4>
+Número de linhas com erros [[erros]]
+ </h4>
+
+<a class="btn "   ng-click="saveRecord()"   ng-class="{disabled : erros > 0 }" > Gravar Tudo </a> 
+<h5>O botão só fica activo depois de serem corrigidos os erros</h5>
+<h5>Considera-se erro: Não ter a leitura diária preenchida ou ter um valor inválido</h5>
+
+
+
+<script>
+
+
+ var app = angular.module('Lavagens',  [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('[[');
+    $interpolateProvider.endSymbol(']]');
+});
+
+ 
+app.controller('MainCtrl', function($scope,$http) {
+
+var today = new Date();
+var dd = today.getDate();
+var mm = today.getMonth()+1;//January is 0!`
+
+var yyyy = today.getFullYear();
+
+//$scope.today_formated =  mm + '/' + dd + '/' + yyyy ;
+
+//$scope.record_date =  mm + '/' + dd + '/' + yyyy ;
+
+ 
+$scope.posto = {{=XML(response.json(posto))}};
+
+$scope.boxes  = {{=XML(response.json(boxes))}};
+
+    
+$scope.last_registo =  {{=XML(response.json(last_registo))}};
+ 
+$scope.diferencas = 0;
+
+$scope.erros = $scope.boxes.length ;
+
+$scope.getErros = function() {
+
+$scope.erros = 0 ;
+
+
+for (var i = $scope.boxes.length - 1; i >= 0; i--) {
+	 
+	if( $scope.boxes[i].erro == true)
+ 			$scope.erros ++;
+
+}
+  
+  
+}; 
+
+
+$scope.getTotal = function() {
+
+var total =0;
+
+for (var i = $scope.boxes.length - 1; i >= 0; i--) {
+	 
+	if( $scope.boxes[i].erro == false){
+
+ 		total = total + (( $scope.boxes[i].counter_value_new  -  $scope.boxes[i].counter_value)  *  $scope.boxes[i].coin_value)  ;
+	}
+
+}
+
+return total;
+
+}; 
+
+$scope.calculateValue = function(b) {
+
+
+var value = (b.counter_value_new  -  b.counter_value)  * parseFloat( b.coin_value) ;
+
+
+
+if(value >= 0){
+	
+     b.erro = false;
+
+ 	 $scope.getErros();
+	
+ 	return  value  ;
+}
+else {
+
+	b.erro = true;
+
+	$scope.getErros();
+
+ 		
+	return "Leitura diária Inválida";
+}
+
+
+};
+
+$scope.calculateDiferencas = function(b) {
+
+
+var value = (b.counter_value_new  -  b.counter_value) ;
+
+
+if(value >= 0){
+	   
+ 	return  value  ;
+}
+else {
+	b.erro = true;
+ 
+	return "";
+}
+
+
+};
+
+$scope.updateFromDiferencas = function(b) {
+
+/*
+var value = (b.counter_value_new  -  b.counter_value) ;
+
+
+if(value >= 0){
+	   
+ 	return  value  ;
+}
+else {
+	b.erro = true;
+ 
+	return "";
+}
+*/
+
+b.counter_value_new =   parseInt( b.diferenca ) +  parseInt(b.counter_value ) ;
+
+
+
+$scope.getErros();
+
+};
+
+$scope.updateFromNewCounter = function(b) {
+
+ 
+
+b.diferenca  = parseInt( b.counter_value_new ) - parseInt( b.counter_value ) ;
+
+
+$scope.getErros();
+
+};
+
+
+
+$scope.saveRecord = function() {
+
+
+ if($scope.record_date != null ){
+
+     
+     
+  //   alert( serialize( $scope.boxes) );
+     
+     // alert( $scope.boxes );
+     
+  //   if($scope.boxes.length == 1)
+  //       $scope.boxes = [$scope.boxes];
+      
+     
+     
+$http(
+    {  
+        method: 'POST', 
+        url: "{{=URL('default','saveRecord')}}",
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'  } ,
+ params: { 
+     boxes: JSON.stringify($scope.boxes) ,
+ 	date: $scope.record_date ,
+ 	total : $scope.getTotal() ,
+ 	diferencas : $scope.diferencas ,
+ 	postId : $scope.posto.id ,
+ 	diferencas_desc  : $scope.diferencas_desc
+ 	  }
+
+ }).
+  success(function(data, status, headers, config) {
+    // this callback will be called asynchronously
+    // when the response is available
+
+  // window.location = "{{=URL('default','index')}}";
+
+      
+  //  alert(data);
+      
+if(data == "OK"){
+
+location.reload();
+
+    
+jQuery('.flash').html('Os dados foram gravados com sucesso').slideDown();
+
+
+$scope.reset();
+} else {
+
+jQuery('.flash').html('Ocoreu um erro.<br>' + data ).slideDown();
+
+
+}
+
+
+  }).
+  error(function(data, status, headers, config) {
+    // called asynchronously if an error occurs
+    // or server returns response with an error status.
+  });
+
+} else {
+
+
+
+jQuery('.flash').html('A data é um campo obrigatório').slideDown();
+
+
+
+}
+
+
+
+};
+
+
+
+$scope.reset = function() {
+
+for (var i = $scope.boxes.length - 1; i >= 0; i--) {
+
+$scope.boxes[i].counter_value_new  = "";
+$scope.getErros();
+$scope.record_date = null;
+$scope.diferencas  = "";
+$scope.diferencas_desc = "";
+
+}
+
+
+
+};
+
+ 
+ 
+
+
+});
+
+
+</script>
+
+
+</div>
